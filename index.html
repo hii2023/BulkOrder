@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOSH7 — Corporate Pack Calculator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --green:   #1C3A21;
+    --green2:  #2E5835;
+    --gold:    #C8973A;
+    --gold-lt: #F5E8C8;
+    --cream:   #FAF8F3;
+    --white:   #FFFFFF;
+    --gray:    #6B6B6B;
+    --light:   #F0EDE6;
+    --border:  #E2DCCF;
+    --red:     #C0392B;
+  }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--cream);
+    color: #1A1A1A;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--green);
+    color: white;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: var(--gold); display: flex; align-items: center;
+    justify-content: center; font-size: 22px; font-weight: 900; color: var(--green);
+  }
+  .logo h1 { font-size: 26px; letter-spacing: 3px; font-weight: 800; }
+  .logo p  { font-size: 12px; opacity: .65; letter-spacing: 1.5px; margin-top: 2px; }
+  .header-note { font-size: 12px; opacity: .6; text-align: right; line-height: 1.6; }
+
+  /* ── QUALITY BANNER ── */
+  .quality-bar {
+    background: var(--gold-lt);
+    border-bottom: 2px solid var(--gold);
+    padding: 10px 40px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .q-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; color: var(--green2);
+  }
+  .q-badge span { font-size: 16px; }
+
+  /* ── LAYOUT ── */
+  .page { display: flex; gap: 0; min-height: calc(100vh - 140px); }
+
+  /* ── MENU SIDE ── */
+  .menu-side {
+    flex: 1;
+    padding: 28px 32px;
+    overflow-y: auto;
+  }
+
+  /* ── TIER CONTROL ── */
+  .tier-box {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .tier-box label { font-weight: 700; font-size: 14px; color: var(--green); }
+  .tier-input-wrap { display: flex; align-items: center; gap: 8px; }
+  .tier-input-wrap input {
+    width: 90px; padding: 8px 12px; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 16px; font-weight: 700; text-align: center;
+    color: var(--green);
+  }
+  .tier-pill {
+    padding: 6px 14px; border-radius: 20px; font-size: 12px;
+    font-weight: 700; transition: all .2s;
+  }
+  .tier-pill.lt  { background: #FFF3CD; color: #856404; border: 1.5px solid #FFC107; }
+  .tier-pill.gt  { background: #D4EDDA; color: #155724; border: 1.5px solid #28a745; }
+
+  /* ── SECTION HEADING ── */
+  .section-head {
+    display: flex; align-items: center; gap: 10px;
+    margin: 28px 0 14px;
+  }
+  .section-head h2 { font-size: 18px; font-weight: 800; color: var(--green); }
+  .section-head hr { flex: 1; border: none; border-top: 2px solid var(--border); }
+
+  /* ── ITEM CARDS ── */
+  .cards { display: flex; flex-direction: column; gap: 12px; }
+
+  .card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px 20px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .card:hover { border-color: var(--gold); box-shadow: 0 2px 12px rgba(200,151,58,.12); }
+  .card.in-cart { border-color: var(--green2); background: #F4FAF5; }
+
+  .card-left {}
+  .card-name { font-size: 15px; font-weight: 700; color: #111; margin-bottom: 2px; }
+  .card-dressing { font-size: 12px; color: var(--gray); margin-bottom: 5px; }
+  .card-desc { font-size: 12px; color: #555; line-height: 1.5; margin-bottom: 8px; }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 5px; }
+  .badge {
+    font-size: 10px; font-weight: 700; padding: 3px 8px;
+    border-radius: 20px; display: flex; align-items: center; gap: 4px;
+    white-space: nowrap;
+  }
+  .badge-paneer   { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+  .badge-jain     { background: #E3F2FD; color: #1565C0; border: 1px solid #90CAF9; }
+  .badge-packaging{ background: #FFF8E1; color: #F57F17; border: 1px solid #FFD54F; }
+  .badge-raw      { background: #E8F5E9; color: #388E3C; border: 1px solid #81C784; }
+
+  /* ── CARD RIGHT: PRICE + CONTROLS ── */
+  .card-right {
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 10px; min-width: 160px;
+  }
+
+  .size-btns { display: flex; gap: 6px; }
+  .size-btn {
+    padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
+    cursor: pointer; border: 1.5px solid var(--border); background: var(--light);
+    color: var(--green); transition: all .15s;
+  }
+  .size-btn.active {
+    background: var(--green); color: white; border-color: var(--green);
+  }
+
+  .price-display {
+    font-size: 20px; font-weight: 800; color: var(--green2); text-align: right;
+  }
+  .price-display small {
+    font-size: 11px; font-weight: 400; color: var(--gray); display: block;
+  }
+
+  .qty-row {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .qty-btn {
+    width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid var(--border);
+    background: var(--light); font-size: 18px; line-height: 1;
+    cursor: pointer; font-weight: 700; color: var(--green2);
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .qty-btn:hover { background: var(--green); color: white; border-color: var(--green); }
+  .qty-num {
+    width: 36px; text-align: center; font-size: 16px;
+    font-weight: 800; color: var(--green);
+  }
+
+  /* ── DRINKS SECTION ── */
+  .drink-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+
+  .drink-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    transition: border-color .2s;
+  }
+  .drink-card:hover { border-color: var(--gold); }
+  .drink-card.in-cart { border-color: var(--green2); background: #F4FAF5; }
+  .drink-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .drink-desc { font-size: 11px; color: var(--gray); margin-bottom: 10px; line-height: 1.4; }
+  .drink-sizes { display: flex; gap: 8px; margin-bottom: 10px; }
+  .drink-size-btn {
+    flex: 1; padding: 6px 0; border-radius: 8px; font-size: 12px; font-weight: 700;
+    cursor: pointer; border: 1.5px solid var(--border); background: var(--light);
+    color: var(--green); text-align: center; transition: all .15s;
+  }
+  .drink-size-btn.active { background: var(--green); color: white; border-color: var(--green); }
+  .drink-price { font-size: 18px; font-weight: 800; color: var(--green2); text-align: right; }
+
+  /* ── ORDER SUMMARY ── */
+  .summary-side {
+    width: 320px;
+    background: var(--white);
+    border-left: 2px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .summary-header {
+    background: var(--green);
+    color: white;
+    padding: 18px 20px;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 1px;
+  }
+  .summary-header span { float: right; font-size: 12px; opacity: .7; font-weight: 400; margin-top: 3px; }
+
+  .summary-body { flex: 1; padding: 16px; overflow-y: auto; }
+
+  .summary-empty {
+    text-align: center; color: var(--gray);
+    padding: 40px 20px; font-size: 13px; line-height: 1.8;
+  }
+  .summary-empty .icon { font-size: 40px; display: block; margin-bottom: 10px; }
+
+  .summary-item {
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 8px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .si-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .si-meta { font-size: 11px; color: var(--gray); }
+  .si-price { font-size: 14px; font-weight: 800; color: var(--green2); white-space: nowrap; }
+  .si-remove {
+    background: none; border: none; cursor: pointer;
+    color: #999; font-size: 14px; padding: 2px 4px;
+    border-radius: 4px; transition: color .15s;
+  }
+  .si-remove:hover { color: var(--red); }
+
+  .summary-footer {
+    border-top: 2px solid var(--border);
+    padding: 16px;
+  }
+
+  .summary-tier-badge {
+    text-align: center; margin-bottom: 12px;
+    padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  }
+  .summary-tier-badge.lt { background: #FFF3CD; color: #856404; }
+  .summary-tier-badge.gt { background: #D4EDDA; color: #155724; }
+
+  .totals-row {
+    display: flex; justify-content: space-between;
+    font-size: 13px; padding: 4px 0; color: var(--gray);
+  }
+  .totals-row.grand {
+    font-size: 18px; font-weight: 800; color: var(--green);
+    border-top: 2px solid var(--green); margin-top: 8px; padding-top: 10px;
+  }
+
+  .gst-note {
+    font-size: 10px; color: var(--gray); margin-top: 10px;
+    padding: 8px; background: var(--cream); border-radius: 6px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">N7</div>
+    <div>
+      <h1>NOSH7</h1>
+      <p>CORPORATE PACK — ORDER CALCULATOR</p>
+    </div>
+  </div>
+  <div class="header-note">
+    Prices excluding GST<br>
+    Delivery charges based on distance
+  </div>
+</header>
+
+<div class="quality-bar">
+  <strong style="font-size:12px;color:#1C3A21;margin-right:4px;">OUR PROMISE:</strong>
+  <div class="q-badge"><span>🥛</span> Jain Dairy Paneer</div>
+  <div class="q-badge"><span>🌾</span> Original Raw Ingredients</div>
+  <div class="q-badge"><span>📦</span> Premium Packaging</div>
+  <div class="q-badge"><span>🌿</span> Jain Option Available</div>
+  <div class="q-badge"><span>❤️</span> Most Liked Items Marked</div>
+</div>
+
+<div class="page">
+
+  <!-- ══ MENU ══ -->
+  <div class="menu-side">
+
+    <!-- Tier selector -->
+    <div class="tier-box">
+      <label>Total Meal Count</label>
+      <div class="tier-input-wrap">
+        <input type="number" id="totalQty" value="0" min="0" oninput="recalc()">
+        <span style="font-size:13px;color:var(--gray)">meals</span>
+      </div>
+      <div id="tierPill" class="tier-pill lt">Standard Pricing (≤ 100)</div>
+      <span style="font-size:12px;color:var(--gray);margin-left:auto">Enter total to unlock bulk pricing</span>
+    </div>
+
+    <!-- ── SALADS ── -->
+    <div class="section-head">
+      <h2>🥗 Salads</h2><hr>
+    </div>
+    <div class="cards" id="saladCards"></div>
+
+    <!-- ── WRAPS & SANDWICHES ── -->
+    <div class="section-head">
+      <h2>🌯 Sandwiches &amp; Wraps</h2><hr>
+    </div>
+    <div class="cards" id="wrapCards"></div>
+
+    <!-- ── DRINKS ── -->
+    <div class="section-head">
+      <h2>🥤 Drinks</h2><hr>
+    </div>
+    <div class="drink-cards" id="drinkCards"></div>
+
+    <div style="height:40px"></div>
+  </div>
+
+  <!-- ══ ORDER SUMMARY ══ -->
+  <div class="summary-side">
+    <div class="summary-header">
+      Order Summary
+      <span id="itemCount">0 items</span>
+    </div>
+    <div class="summary-body" id="summaryBody">
+      <div class="summary-empty">
+        <span class="icon">🛒</span>
+        Add items from the menu<br>to see your order here.
+      </div>
+    </div>
+    <div class="summary-footer">
+      <div id="tierBadge" class="summary-tier-badge lt" style="display:none"></div>
+      <div class="totals-row"><span>Food Subtotal</span><span id="foodTotal">₹0</span></div>
+      <div class="totals-row"><span>Drinks Subtotal</span><span id="drinksTotal">₹0</span></div>
+      <div class="totals-row grand"><span>TOTAL</span><span id="grandTotal">₹0</span></div>
+      <div class="gst-note">
+        ⚠️ Prices exclude GST.<br>
+        📦 Delivery charges calculated separately based on distance.<br>
+        💰 Bulk discount applies automatically for orders above 100 meals.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  MENU DATA (from CORPORATE PACK Sheet3)
+// ══════════════════════════════════════════
+const salads = [
+  {
+    id:'tps', name:'Tandoori Paneer Salad Bowl', dressing:'Mint Curd',
+    desc:'Smoky & Crunchy: Charred tandoori paneer paired with a crisp cabbage and baby corn medley for a classic desi crunch.',
+    badges:['paneer','packaging','raw'], liked:true,
+    p500:{lt:115,gt:105}, p750:{lt:130,gt:120}
+  },
+  {
+    id:'mpb', name:'Mint Paneer Bowl', dressing:'Cheese Curd',
+    desc:'Fresh & Creamy: Cool mint-marinated paneer served over zucchini and peppers with a rich, silky finish.',
+    badges:['paneer','packaging','raw'], liked:false,
+    p500:{lt:115,gt:105}, p750:{lt:125,gt:115}
+  },
+  {
+    id:'sc', name:'Sprout Chaat', dressing:'Imly Gud Chatney',
+    desc:'Sprouts, veggies and crunchy flavoured snacks with tangy curd dressing.',
+    badges:['jain','packaging','raw'], liked:false,
+    p500:{lt:110,gt:100}, p750:{lt:120,gt:110}
+  },
+  {
+    id:'cc', name:'Chana Chatpata', dressing:'Tangy Imly',
+    desc:'Zesty & Bright: A street-style explosion of tangy tamarind, sweet pomegranate.',
+    badges:['jain','packaging','raw'], liked:true,
+    p500:{lt:110,gt:100}, p750:{lt:120,gt:110}
+  },
+  {
+    id:'tmr', name:'Tex Mexican Rice Bowl', dressing:'Salsa',
+    desc:'Smoky & Filling: Earthy brown rice meets slow-cooked rajma and crunchy nachos for a fiesta of textures.',
+    badges:['paneer','packaging','raw'], liked:true,
+    p500:{lt:110,gt:100}, p750:{lt:120,gt:110}
+  },
+  {
+    id:'bb', name:'Burrito Bowl', dressing:'—',
+    desc:'Rice, Rajma, fajita, prepared with exotic veggies and flavored with taste of Mexican spices.',
+    badges:['paneer','packaging','raw'], liked:false,
+    p500:{lt:115,gt:105}, p750:{lt:125,gt:115}
+  },
+  {
+    id:'ps', name:'Pasta Salad', dressing:'Salsa',
+    desc:'Whole wheat tangy pasta with sautéed veggies and shredded paneer.',
+    badges:['paneer','packaging','raw'], liked:false,
+    p500:{lt:115,gt:105}, p750:{lt:125,gt:115}
+  },
+  {
+    id:'rnv', name:'Rice Noodle Veggie Bowl', dressing:'Soye Peanut',
+    desc:'Sweet & Nutty: Silky Thai noodles and thin-sliced carrots tossed in a sweet-and-savory peanut sauce.',
+    badges:['jain','packaging','raw'], liked:false,
+    p500:{lt:110,gt:100}, p750:{lt:120,gt:110}
+  },
+  {
+    id:'ms', name:'Mexican Salad', dressing:'Salsa',
+    desc:'Fresh & Tangy: A light, zippy mix of red peppers, rajma, and fresh parsley with a sharp tomato kick.',
+    badges:['paneer','packaging','raw'], liked:true,
+    p500:{lt:115,gt:105}, p750:{lt:125,gt:115}
+  }
+];
+
+const wraps = [
+  {
+    id:'wmw', name:'Wheat Mexican Wrap', dressing:'Creamy Salsa',
+    desc:'Hearty & Savory: A warm hug of rajma, melted cheese sauce, and oregano wrapped in soft whole wheat.',
+    badges:['jain','packaging','raw'], liked:false,
+    p500:{lt:110,gt:100}, p750:{lt:120,gt:110}
+  },
+  {
+    id:'pgs', name:'Paneer Grilled Sandwich', dressing:'Salsa / Green Chutney',
+    desc:'Brown Bread Sandwich with exotic sauté veggies and grilled paneer.',
+    badges:['paneer','packaging','raw'], liked:true,
+    p500:{lt:110,gt:105}, p750:{lt:130,gt:120}
+  }
+];
+
+const drinks = [
+  { id:'ml',  name:'Mint Lemonade', desc:'Mixture of Lemon, mint and Pink salt / jaggery.',       p200:25, p300:35 },
+  { id:'mc',  name:'Masala Chaas',  desc:'Buttermilk with Coriander, Mint leaves and spices.',     p200:25, p300:35 },
+  { id:'np',  name:'Nimbu Pani',    desc:'Lime, jaggery and some spices.',                          p200:25, p300:35 },
+  { id:'cf',  name:'Chia Fresca',   desc:'Chia Seeds, Honey, Mint, Lemon & orange slice.',          p200:25, p300:35 },
+  { id:'abc', name:'ABC Juice',     desc:'Apple Beetroot Carrot Juice.',                            p200:39, p300:49 }
+];
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const cart = {};   // id -> { item, type:'food'|'drink', size, qty }
+
+function isGT() {
+  return parseInt(document.getElementById('totalQty').value||0) > 100;
+}
+
+function getPrice(item, size) {
+  const gt = isGT();
+  if (item.p500) { // food
+    if (size==='500ml') return gt ? item.p500.gt : item.p500.lt;
+    return gt ? item.p750.gt : item.p750.lt;
+  } else { // drink
+    return size==='200ml' ? item.p200 : item.p300;
+  }
+}
+
+// ══════════════════════════════════════════
+//  RENDER HELPERS
+// ══════════════════════════════════════════
+const badgeDefs = {
+  paneer:    ['🥛','Jain Dairy Paneer','badge-paneer'],
+  jain:      ['🌿','Jain Option','badge-jain'],
+  packaging: ['📦','Premium Packaging','badge-packaging'],
+  raw:       ['🌾','Raw Ingredients','badge-raw'],
+};
+
+function badgeHtml(b) {
+  const [icon,label,cls] = badgeDefs[b];
+  return `<span class="badge ${cls}">${icon} ${label}</span>`;
+}
+
+function renderFoodCard(item) {
+  const state = cart[item.id] || { size:'500ml', qty:0 };
+  const price  = getPrice(item, state.size);
+  const inCart = state.qty > 0;
+
+  return `
+  <div class="card ${inCart?'in-cart':''}" id="card-${item.id}">
+    <div class="card-left">
+      <div class="card-name">${item.liked?'❤️ ':''}${item.name}</div>
+      <div class="card-dressing">🥗 ${item.dressing}</div>
+      <div class="card-desc">${item.desc}</div>
+      <div class="badges">${item.badges.map(badgeHtml).join('')}</div>
+    </div>
+    <div class="card-right">
+      <div class="size-btns">
+        <button class="size-btn ${state.size==='500ml'?'active':''}"
+          onclick="setSize('${item.id}','500ml')">500 ML</button>
+        <button class="size-btn ${state.size==='750ml'?'active':''}"
+          onclick="setSize('${item.id}','750ml')">750 ML</button>
+      </div>
+      <div class="price-display">
+        ₹${price}
+        <small>per unit · excl. GST</small>
+      </div>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+        <span class="qty-num" id="qty-${item.id}">${state.qty}</span>
+        <button class="qty-btn" onclick="changeQty('${item.id}',+1)">+</button>
+      </div>
+      ${state.qty>0?`<small style="color:var(--green2);font-weight:700">₹${price*state.qty} total</small>`:''}
+    </div>
+  </div>`;
+}
+
+function renderDrinkCard(item) {
+  const state = cart[item.id] || { size:'200ml', qty:0 };
+  const price  = getPrice(item, state.size);
+  const inCart = state.qty > 0;
+
+  return `
+  <div class="drink-card ${inCart?'in-cart':''}" id="card-${item.id}">
+    <div class="drink-name">${item.name}</div>
+    <div class="drink-desc">${item.desc}</div>
+    <div class="drink-sizes">
+      <button class="drink-size-btn ${state.size==='200ml'?'active':''}"
+        onclick="setSize('${item.id}','200ml')">200 ML · ₹${item.p200}</button>
+      <button class="drink-size-btn ${state.size==='300ml'?'active':''}"
+        onclick="setSize('${item.id}','300ml')">300 ML · ₹${item.p300}</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeQty('${item.id}',-1)">−</button>
+        <span class="qty-num" id="qty-${item.id}">${state.qty}</span>
+        <button class="qty-btn" onclick="changeQty('${item.id}',+1)">+</button>
+      </div>
+      <div class="drink-price">₹${price}</div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+//  RENDER ALL CARDS
+// ══════════════════════════════════════════
+function renderCards() {
+  document.getElementById('saladCards').innerHTML = salads.map(renderFoodCard).join('');
+  document.getElementById('wrapCards').innerHTML  = wraps.map(renderFoodCard).join('');
+  document.getElementById('drinkCards').innerHTML = drinks.map(renderDrinkCard).join('');
+}
+
+// ══════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════
+function setSize(id, size) {
+  if (!cart[id]) cart[id] = { size, qty:0 };
+  else cart[id].size = size;
+  recalc();
+  renderCards();
+}
+
+function changeQty(id, delta) {
+  const allItems = [...salads, ...wraps, ...drinks];
+  const item = allItems.find(i => i.id===id);
+  if (!item) return;
+  if (!cart[id]) cart[id] = { size: item.p500 ? '500ml' : '200ml', qty:0 };
+  cart[id].qty = Math.max(0, cart[id].qty + delta);
+  cart[id].item = item;
+  cart[id].type = item.p500 ? 'food' : 'drink';
+  recalc();
+  renderCards();
+}
+
+// ══════════════════════════════════════════
+//  RECALC & SUMMARY
+// ══════════════════════════════════════════
+function recalc() {
+  const gt = isGT();
+
+  // tier pill
+  const pill = document.getElementById('tierPill');
+  if (gt) {
+    pill.textContent = '🎉 Bulk Pricing Active (> 100)';
+    pill.className = 'tier-pill gt';
+  } else {
+    pill.textContent = 'Standard Pricing (≤ 100)';
+    pill.className = 'tier-pill lt';
+  }
+
+  let foodSubtotal = 0, drinksSubtotal = 0, totalItems = 0;
+  const cartItems = Object.entries(cart).filter(([,v])=>v.qty>0);
+
+  // recalc prices with new tier
+  cartItems.forEach(([id, v]) => {
+    const price = getPrice(v.item, v.size);
+    v.price = price;
+    if (v.type==='food') foodSubtotal += price * v.qty;
+    else drinksSubtotal += price * v.qty;
+    totalItems += v.qty;
+  });
+
+  const grandTotal = foodSubtotal + drinksSubtotal;
+
+  document.getElementById('foodTotal').textContent   = '₹' + foodSubtotal;
+  document.getElementById('drinksTotal').textContent = '₹' + drinksSubtotal;
+  document.getElementById('grandTotal').textContent  = '₹' + grandTotal;
+  document.getElementById('itemCount').textContent   = totalItems + (totalItems===1?' item':' items');
+
+  // tier badge in summary
+  const tb = document.getElementById('tierBadge');
+  if (totalItems > 0) {
+    tb.style.display = 'block';
+    if (gt) {
+      tb.textContent = '🎉 Bulk Discount Applied (> 100 meals)';
+      tb.className = 'summary-tier-badge gt';
+    } else {
+      tb.textContent = '📋 Standard Pricing — order 100+ for bulk rates';
+      tb.className = 'summary-tier-badge lt';
+    }
+  } else {
+    tb.style.display = 'none';
+  }
+
+  // summary list
+  const body = document.getElementById('summaryBody');
+  if (cartItems.length === 0) {
+    body.innerHTML = `<div class="summary-empty"><span class="icon">🛒</span>Add items from the menu<br>to see your order here.</div>`;
+    return;
+  }
+
+  body.innerHTML = cartItems.map(([id, v]) => `
+    <div class="summary-item">
+      <div style="flex:1">
+        <div class="si-name">${v.item.name}</div>
+        <div class="si-meta">${v.size.toUpperCase()} × ${v.qty} @ ₹${v.price}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="si-price">₹${v.price * v.qty}</div>
+        <button class="si-remove" onclick="removeItem('${id}')" title="Remove">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function removeItem(id) {
+  if (cart[id]) cart[id].qty = 0;
+  recalc();
+  renderCards();
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+renderCards();
+recalc();
+</script>
+</body>
+</html>
